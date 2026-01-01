@@ -56,3 +56,5 @@ screenshoots_scifair/
 *.png
 *.csv
 cluster_profiles.xlsx
+
+saved_models/*.pkl
