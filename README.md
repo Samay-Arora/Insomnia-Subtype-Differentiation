@@ -59,4 +59,12 @@ cd ..
 
 ```bash
 python scripts/harmonize.py
+
+python scripts/extract_features.py
+
+# Optional:
+# python scripts/clustering.py
+# python scripts/chaos_clustering.py
+
+python scripts/insomnia_clustering.py
 ```
