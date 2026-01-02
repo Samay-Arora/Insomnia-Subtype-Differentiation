@@ -52,6 +52,7 @@ isruc_data/
 processed_data/
 cap_data/
 screenshoots_scifair/
+saved_models/
 
 *.png
 *.csv
