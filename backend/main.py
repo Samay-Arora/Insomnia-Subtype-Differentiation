@@ -50,6 +50,7 @@ async def analyze_eeg(
     max_size = 500 * 1024 * 1024
     content = await file.read()
     print(f"📁 Received file: {file.filename}, Size: {len(content) / (1024*1024):.2f} MB")
+    print(f"🔑 Auth Header present: {authorization is not None}")
     
     if len(content) > max_size:
         raise HTTPException(status_code=413, detail=f"File too large ({len(content)/(1024*1024):.1f}MB). Max is 500MB")
@@ -138,10 +139,13 @@ async def analyze_eeg(
                             print(f"⚠️ Profile update error: {p_err}")
                             
                 except Exception as db_err:
-                    print(f"⚠️ Persistence failed (continuing anyway): {db_err}")
+                    import traceback
+                    print(f"⚠️ Persistence failed: {db_err}")
+                    traceback.print_exc()
             # -------------------------
 
             results_cache[session_id] = analysis_results
+            print(f"✅ Analysis complete and cached: {session_id}")
             return {"sessionId": session_id}
             
         finally:

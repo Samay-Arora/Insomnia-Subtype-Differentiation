@@ -21,7 +21,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey);
  * Register a new user account
  */
 export async function signup(credentials: SignupCredentials): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
         email: credentials.email,
         password: credentials.password,
     });
@@ -37,7 +37,7 @@ export async function signup(credentials: SignupCredentials): Promise<AuthRespon
  * Authenticate user with email and password
  */
 export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
     });
@@ -82,6 +82,7 @@ export async function uploadEEG(file: File): Promise<UploadResponse> {
         }
 
         const result = await response.json();
+        console.log('✅ Upload response received:', result);
         return {
             success: true,
             sessionId: result.sessionId,
@@ -98,11 +99,15 @@ export async function uploadEEG(file: File): Promise<UploadResponse> {
  * Results are temporarily cached in FastAPI (auto-expires)
  */
 export async function getAnalysis(sessionId: string): Promise<AnalysisData> {
+    console.log(`🔍 Fetching analysis for session: ${sessionId}`);
     const response = await fetch(`${API_BASE_URL}/results/${sessionId}`);
 
     if (!response.ok) {
+        console.error(`❌ Failed to fetch analysis: ${response.status} ${response.statusText}`);
         throw new Error('Analysis not found or expired');
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log('✅ Analysis data received:', data);
+    return data;
 }

@@ -39,8 +39,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
             setUploadProgress(30);
 
             // Perform Upload
+            console.log('🚀 Starting upload and analysis (this may take ~30s)...');
             const response = await uploadEEG(file);
-            setUploadProgress(70);
+            setUploadProgress(90);
 
             if (response.success && response.sessionId) {
                 setUploadProgress(100);
@@ -177,7 +178,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
                                             />
                                         </div>
                                         <p className="font-pixel text-[8px] text-dream-purple-400 mt-2">
-                                            {uploadProgress < 100 ? `LOADING... ${uploadProgress}%` : 'READY FOR ANALYSIS'}
+                                            {uploadProgress < 30 ? `UPLOADING... ${uploadProgress}%` :
+                                                uploadProgress < 100 ? `ANALYZING DREAMSCAPE... ${uploadProgress}%` :
+                                                    'READY FOR ANALYSIS'}
                                         </p>
                                     </div>
 
