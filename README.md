@@ -1,4 +1,10 @@
 # Insomnia-Subtype-Differentiation
+## Abstract
+
+Project: Neuro-Phenotyping of Insomnia via Unsupervised Chaos Theory 
+Tech Stack: Python, MNE, Scikit-Learn, FastAPI, Supabase
+
+Developed an end-to-end medical AI pipeline to challenge traditional sleep scoring. By engineering non-linear complexity features (Permutation Entropy, Fractal Dimension) from raw EEG data, I identified two statistically distinct insomnia phenotypes: 'Stress-Mediated Hyperarousal' and 'Cortical Rigidity.' The project solves the multi-center 'Batch Effect' problem using anatomical signal harmonization and is deployed as a web application (FastAPI) allowing for real-time biological subtyping of patient uploads.
 
 ## Replication Steps
 
@@ -6,7 +12,7 @@ To replicate the findings of this study, follow these sequential steps. This pip
 
 ### Phase 1: Environment Setup for Intel Mac
 
-We use a double Python environment to ensure library compatibility (specifically for `mne`, `antropy`, and `scikit-learn`). Each branch has its own neccesary libraries because they take different approaches.
+We use a Python environment to ensure library compatibility (specifically for `mne`, `antropy`, and `scikit-learn`). Each branch has its own neccesary libraries because they take different approaches.
 
 ```bash
 
