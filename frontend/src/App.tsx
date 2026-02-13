@@ -33,13 +33,13 @@ const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
-    // Check active session
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsLoggedIn(!!session);
       setLoading(false);
     });
 
-    // Listen for auth changes
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session);
       setLoading(false);
@@ -55,7 +55,7 @@ const useAuth = () => {
   return { isLoggedIn, loading, logout };
 };
 
-// Protected route wrapper
+
 interface ProtectedRouteProps {
   isLoggedIn: boolean;
   children: React.ReactNode;

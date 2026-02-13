@@ -5,7 +5,7 @@ import antropy as ant
 from scipy.signal import welch
 from tqdm import tqdm
 
-# --- CONFIGURATION ---
+
 INPUT_DIR = "processed_data"
 OUTPUT_FILE = "features_with_chaos.csv"
 SFREQ = 100  

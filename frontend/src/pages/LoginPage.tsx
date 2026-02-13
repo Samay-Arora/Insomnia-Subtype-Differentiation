@@ -27,7 +27,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             const result = await login({ email, password });
 
             if (result.success) {
-                // Auth state listener in App.tsx will handle redirect
+                
                 onLogin?.();
             } else {
                 alert(result.error || 'Login failed');

@@ -4,10 +4,10 @@
  * Uses Recharts with retro pixel styling and pastel palette
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    LineChart, Line, AreaChart, Area, ScatterChart, Scatter,
+    AreaChart, Area, ScatterChart, Scatter,
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     Legend, BarChart, Bar,
 } from 'recharts';
@@ -16,129 +16,108 @@ import { PixelCard } from '../components/ui';
 import { getAnalysis } from '../services/api';
 import type { AnalysisData } from '../types';
 
-interface AnalysisPageProps {
-    onLogout?: () => void;
-}
 
-// --- Helper Components ---
-
-const RetroTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-        return (
-            <div className="bg-dream-indigo-800 border-4 border-dream-purple-500 p-3 shadow-lg">
-                <p className="font-pixel text-[8px] text-dream-yellow-500 mb-1">
-                    {label}
+const TooltipUI = ({ active, payload, label }: any) => {
+    if (!active || !payload?.length) return null;
+    return (
+        <div className="bg-dream-indigo-800 border-4 border-dream-purple-500 p-3 shadow-lg">
+            <p className="font-pixel text-[8px] text-dream-yellow-500 mb-1">{label}</p>
+            {payload.map((entry: any, i: number) => (
+                <p key={i} className="font-body text-xs" style={{ color: entry.color }}>
+                    {entry.name}: {entry.value}
                 </p>
-                {payload.map((entry: any, index: number) => (
-                    <p key={index} className="font-body text-xs" style={{ color: entry.color }}>
-                        {entry.name}: {entry.value}
-                    </p>
-                ))}
-            </div>
-        );
-    }
-    return null;
+            ))}
+        </div>
+    );
 };
 
-const RetroAxisTick = ({ x, y, payload }: any) => (
+const AxisTick = ({ x, y, payload }: any) => (
     <g transform={`translate(${x},${y})`}>
-        <text
-            x={0}
-            y={0}
-            dy={16}
-            textAnchor="middle"
-            fill="#9a72b3"
-            className="font-body text-[10px]"
-        >
+        <text x={0} y={0} dy={16} textAnchor="middle" fill="#9a72b3" className="font-body text-[10px]">
             {payload.value}
         </text>
     </g>
 );
 
-const LoadingState = () => (
+const Loader = () => (
     <div className="flex items-center justify-center h-64">
         <div className="text-center">
             <div className="w-16 h-16 border-4 border-dream-purple-500 border-t-dream-yellow-500 rounded-full animate-spin mx-auto mb-4" />
-            <p className="font-pixel text-dream-purple-300">DECODING DREAMSCAPE...</p>
+            <p className="font-pixel text-dream-purple-300">LOADING...</p>
         </div>
     </div>
 );
 
 // --- Main Component ---
 
-export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
-    const { sessionId } = useParams<{ sessionId: string }>();
+export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
+    const { sessionId: id } = useParams<{ sessionId: string }>();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<AnalysisData | null>(null);
 
     // Static background clusters for visualization context
     // In a real app, these might come from the backend relative to the patient
-    const backgroundClusters = [
-        { x: 2.5, y: 4.0, cluster: 1, id: 'Type A' },
-        { x: 5.3, y: 2.2, cluster: 2, id: 'Type B' },
-        { x: 7.8, y: 6.0, cluster: 3, id: 'Type C' },
+    const bgPoints = [
+        { x: 2.5, y: 4.0, cluster: 1, id: 'Type A', isPatient: false },
+        { x: 5.3, y: 2.2, cluster: 2, id: 'Type B', isPatient: false },
+        { x: 7.8, y: 6.0, cluster: 3, id: 'Type C', isPatient: false },
         // Add some noise around them
-        { x: 2.3, y: 4.1, cluster: 1 }, { x: 2.8, y: 3.9, cluster: 1 },
-        { x: 5.5, y: 2.4, cluster: 2 }, { x: 5.1, y: 1.8, cluster: 2 },
-        { x: 8.1, y: 5.9, cluster: 3 }, { x: 7.5, y: 6.5, cluster: 3 },
+        { x: 2.3, y: 4.1, cluster: 1, isPatient: false }, { x: 2.8, y: 3.9, cluster: 1, isPatient: false },
+        { x: 5.5, y: 2.4, cluster: 2, isPatient: false }, { x: 5.1, y: 1.8, cluster: 2, isPatient: false },
+        { x: 8.1, y: 5.9, cluster: 3, isPatient: false }, { x: 7.5, y: 6.5, cluster: 3, isPatient: false },
     ];
 
     useEffect(() => {
-        if (!sessionId) {
+        if (!id) {
             navigate('/dashboard');
             return;
         }
 
-        const fetchData = async () => {
-            try {
-                const result = await getAnalysis(sessionId);
-                setData(result);
-            } catch (error) {
-                console.error("Failed to load analysis:", error);
-                alert("Failed to load analysis results. Redirecting...");
-                navigate('/dashboard');
-            } finally {
+        getAnalysis(id)
+            .then(res => {
+                setData(res);
                 setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [sessionId, navigate]);
+            })
+            .catch(err => {
+                console.error("fetch err:", err);
+                navigate('/dashboard');
+            });
+    }, [id, navigate]);
 
     if (loading || !data) {
         return (
-            <DashboardLayout title="Sleep Analysis" userName="Traveler" onLogout={onLogout}>
-                <LoadingState />
+            <DashboardLayout title="Analysis" userName="User" onLogout={onLogout}>
+                <Loader />
             </DashboardLayout>
         );
     }
 
     // Process Data for Charts - Defensive Checks
-    const sleepStages = data.sleepStages || [];
+    const stages = data.sleepStages || [];
     const spectralAnalysis = data.spectralAnalysis || [];
     const clusterAssignment = data.clusterAssignment || { x: 0, y: 0, cluster: 0 };
     const summary = data.summary || { totalSleepTime: 0, sleepEfficiency: 0, remLatency: 0 };
     const phenotype = data.phenotype || { type: 'Unknown', confidence: 0, characteristics: [] };
 
-    // Calculate Stage Distribution from sleepStages array
-    const stageCounts = sleepStages.reduce((acc, curr) => {
-        const label = curr.label || 'Unknown';
-        acc[label] = (acc[label] || 0) + 1;
+    // Calculate Stage Distribution from stages array
+    const counts = stages.reduce((acc, curr) => {
+        const l = curr.label || 'Unknown';
+        acc[l] = (acc[l] || 0) + 1;
         return acc;
     }, {} as Record<string, number>);
 
-    const totalEpochs = sleepStages.length || 1;
-    const sleepMetrics = [
-        { name: 'Wake', value: Math.round(((stageCounts['Wake'] || 0) / totalEpochs) * 100), fill: '#4a3070' },
-        { name: 'N1', value: Math.round(((stageCounts['N1'] || 0) / totalEpochs) * 100), fill: '#7a5299' },
-        { name: 'N2', value: Math.round(((stageCounts['N2'] || 0) / totalEpochs) * 100), fill: '#9a72b3' },
-        { name: 'N3', value: Math.round(((stageCounts['N3'] || 0) / totalEpochs) * 100), fill: '#5c3d87' },
-        { name: 'REM', value: Math.round(((stageCounts['REM'] || 0) / totalEpochs) * 100), fill: '#f5e6a3' },
+    const total = stages.length || 1;
+    const metrics = [
+        { name: 'Wake', value: Math.round(((counts['Wake'] || 0) / total) * 100), fill: '#4a3070' },
+        { name: 'N1', value: Math.round(((counts['N1'] || 0) / total) * 100), fill: '#7a5299' },
+        { name: 'N2', value: Math.round(((counts['N2'] || 0) / total) * 100), fill: '#9a72b3' },
+        { name: 'N3', value: Math.round(((counts['N3'] || 0) / total) * 100), fill: '#5c3d87' },
+        { name: 'REM', value: Math.round(((counts['REM'] || 0) / total) * 100), fill: '#f5e6a3' },
     ].filter(s => s.value > 0);
 
-    // Combine patient cluster with background
-    const patientClusterPoint = {
+
+    const userPoint = {
         x: clusterAssignment?.x || 0,
         y: clusterAssignment?.y || 0,
         cluster: clusterAssignment?.cluster || 0,
@@ -146,9 +125,9 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
         isPatient: true
     };
 
-    const combinedClusters = [...backgroundClusters, patientClusterPoint];
+    const points = [...bgPoints, userPoint];
 
-    const spectralChartData = spectralAnalysis.map(d => ({
+    const spectral = spectralAnalysis.map(d => ({
         name: d.frequency === 1 ? 'Delta' :
             d.frequency === 6 ? 'Theta' :
                 d.frequency === 10 ? 'Alpha' :
@@ -159,17 +138,13 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
     }));
 
 
-    // Helper for time
-    const formatTime = (minutes: number) => {
-        const h = Math.floor(minutes / 60);
-        const m = minutes % 60;
-        return `${h}h ${m}m`;
-    };
 
-    const phenotypeType = phenotype.type ? phenotype.type.split(':')[0] : 'Unknown';
+    const format = (m: number) => `${Math.floor(m / 60)}h ${m % 60}m`;
+
+    const typeLabel = phenotype.type ? phenotype.type.split(':')[0] : 'Unknown';
 
     return (
-        <DashboardLayout title="Sleep Analysis" userName="Traveler" onLogout={onLogout}>
+        <DashboardLayout title="Analysis" userName="User" onLogout={onLogout}>
             <div className="space-y-6">
                 {/* Header Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -177,7 +152,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                         <div className="text-center">
                             <p className="font-pixel text-[8px] text-dream-purple-400 mb-1">TOTAL SLEEP</p>
                             <p className="font-pixel text-xl text-dream-yellow-500">
-                                {formatTime(summary.totalSleepTime)}
+                                {format(summary.totalSleepTime)}
                             </p>
                         </div>
                     </PixelCard>
@@ -200,20 +175,20 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                     <PixelCard variant="highlight">
                         <div className="text-center">
                             <p className="font-pixel text-[8px] text-dream-purple-400 mb-1">PHENOTYPE</p>
-                            <p className="font-pixel text-lg text-dream-yellow-500" title={phenotype.type}>
-                                {phenotypeType}
+                            <p className="font-pixel text-lg text-dream-yellow-500">
+                                {typeLabel}
                             </p>
                         </div>
                     </PixelCard>
                 </div>
 
                 {/* Hypnogram - Sleep Stage Chart */}
-                <PixelCard title="📊 HYPNOGRAM">
+                <PixelCard title="HYPNOGRAM">
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={sleepStages}>
+                            <AreaChart data={stages}>
                                 <defs>
-                                    <linearGradient id="sleepGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#f5e6a3" stopOpacity={0.4} />
                                         <stop offset="95%" stopColor="#5c3d87" stopOpacity={0.1} />
                                     </linearGradient>
@@ -221,9 +196,8 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                                 <CartesianGrid strokeDasharray="4 4" stroke="#3d2660" strokeWidth={2} />
                                 <XAxis
                                     dataKey="time"
-                                    tick={<RetroAxisTick />}
+                                    tick={<AxisTick />}
                                     axisLine={{ stroke: '#5c3d87', strokeWidth: 3 }}
-                                    tickLine={{ stroke: '#5c3d87', strokeWidth: 2 }}
                                 />
                                 <YAxis
                                     domain={[0, 4]}
@@ -231,15 +205,14 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                                     tickFormatter={(value) => ['Wake', 'N1', 'N2', 'N3', 'REM'][value] || ''}
                                     tick={{ fill: '#9a72b3', fontSize: 10 }}
                                     axisLine={{ stroke: '#5c3d87', strokeWidth: 3 }}
-                                    tickLine={{ stroke: '#5c3d87', strokeWidth: 2 }}
                                 />
-                                <Tooltip content={<RetroTooltip />} />
+                                <Tooltip content={<TooltipUI />} />
                                 <Area
                                     type="stepAfter"
                                     dataKey="stage"
                                     stroke="#f5e6a3"
                                     strokeWidth={4}
-                                    fill="url(#sleepGradient)"
+                                    fill="url(#g)"
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
@@ -248,21 +221,19 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Spectral Power */}
-                    <PixelCard title="🌊 SPECTRAL POWER">
+                    <PixelCard title="SPECTRAL POWER">
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={spectralChartData}>
+                                <BarChart data={spectral}>
                                     <CartesianGrid strokeDasharray="4 4" stroke="#3d2660" strokeWidth={2} />
                                     <XAxis
                                         dataKey="name"
                                         tick={{ fill: '#9a72b3', fontSize: 10 }}
-                                        axisLine={{ stroke: '#5c3d87', strokeWidth: 3 }}
                                     />
                                     <YAxis
                                         tick={{ fill: '#9a72b3', fontSize: 10 }}
-                                        axisLine={{ stroke: '#5c3d87', strokeWidth: 3 }}
                                     />
-                                    <Tooltip content={<RetroTooltip />} />
+                                    <Tooltip content={<TooltipUI />} />
                                     <Bar dataKey="power" fill="#9a72b3" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -270,14 +241,14 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                     </PixelCard>
 
                     {/* Sleep Stage Distribution */}
-                    <PixelCard title="🥧 STAGE DISTRIBUTION">
+                    <PixelCard title="STAGE DISTRIBUTION">
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={sleepMetrics} layout="vertical">
+                                <BarChart data={metrics} layout="vertical">
                                     <CartesianGrid strokeDasharray="4 4" stroke="#3d2660" strokeWidth={2} horizontal={false} />
-                                    <XAxis type="number" tick={{ fill: '#9a72b3', fontSize: 10 }} axisLine={{ stroke: '#5c3d87', strokeWidth: 3 }} unit="%" />
-                                    <YAxis type="category" dataKey="name" tick={{ fill: '#9a72b3', fontSize: 10 }} axisLine={{ stroke: '#5c3d87', strokeWidth: 3 }} width={50} />
-                                    <Tooltip content={<RetroTooltip />} />
+                                    <XAxis type="number" tick={{ fill: '#9a72b3', fontSize: 10 }} unit="%" />
+                                    <YAxis type="category" dataKey="name" tick={{ fill: '#9a72b3', fontSize: 10 }} width={50} />
+                                    <Tooltip content={<TooltipUI />} />
                                     <Bar dataKey="value" radius={[0, 4, 4, 0]} fill="#7a5299">
                                     </Bar>
                                 </BarChart>
@@ -287,7 +258,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                 </div>
 
                 {/* Cluster Visualization */}
-                <PixelCard title="🎯 PHENOTYPE CLUSTERS">
+                <PixelCard title="CLUSTERS">
                     <div className="h-96">
                         <ResponsiveContainer width="100%" height="100%">
                             <ScatterChart margin={{ top: 20, right: 30, bottom: 40, left: 20 }}>
@@ -308,13 +279,13 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                                     axisLine={{ stroke: '#5c3d87', strokeWidth: 3 }}
                                     domain={[-5, 10]}
                                 />
-                                <Tooltip content={<RetroTooltip />} cursor={{ strokeDasharray: '3 3' }} />
+                                <Tooltip content={<TooltipUI />} cursor={{ strokeDasharray: '3 3' }} />
                                 <Legend verticalAlign="top" wrapperStyle={{ paddingBottom: 10 }} />
 
                                 {/* Background Clusters */}
                                 <Scatter
                                     name="Known Subtypes"
-                                    data={combinedClusters.filter(d => !d.isPatient)}
+                                    data={points.filter(d => !d.isPatient)}
                                     fill="#7a5299"
                                     shape="circle"
                                 />
@@ -322,7 +293,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                                 {/* Current Patient */}
                                 <Scatter
                                     name="You"
-                                    data={combinedClusters.filter(d => d.isPatient)}
+                                    data={points.filter(d => d.isPatient)}
                                     fill="#f5e6a3"
                                     shape="star"
                                     r={40} // Make it big
@@ -343,11 +314,11 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                 </PixelCard>
 
                 {/* Analysis Summary */}
-                <PixelCard title="📋 ANALYSIS SUMMARY" variant="highlight">
+                <PixelCard title="SUMMARY" variant="highlight">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h4 className="font-pixel text-[10px] text-dream-yellow-500 mb-3">
-                                KEY FINDINGS
+                                FINDINGS
                             </h4>
                             <ul className="space-y-2">
                                 <li className="flex items-start gap-2">
@@ -368,7 +339,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({ onLogout }) => {
                         </div>
                         <div>
                             <h4 className="font-pixel text-[10px] text-dream-yellow-500 mb-3">
-                                PHENOTYPE DEFINITION
+                                METRICS
                             </h4>
                             <div className="bg-dream-purple-800 border-4 border-dream-purple-600 p-4">
                                 <p className="font-body text-sm text-dream-purple-300">

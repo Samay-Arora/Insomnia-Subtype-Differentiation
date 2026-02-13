@@ -1,25 +1,12 @@
-/**
- * Global styles for Sleep Research Platform
- * "Retro Pixelated Dreamscape" theme
- * 
- * Color Palette:
- * - dream-purple: Deep pastel purples for backgrounds
- * - dream-indigo: Muted indigos for depth
- * - dream-yellow: Soft pastel yellow for moon/accents
- * - pixel-white: Bright white for stars/text
- * 
- * Fonts:
- * - "Press Start 2P": 8-bit pixel headers
- * - "Inter": Clean body text
- */
+
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Press+Start+2P&display=swap');
 
 @import "tailwindcss";
 
-/* Custom Theme Configuration */
+
 @theme {
-  /* Color Palette - Pastel Lo-Fi Dreamscape */
+  
   --color-dream-purple-900: #1a0f2e;
   --color-dream-purple-800: #2d1b4e;
   --color-dream-purple-700: #3d2660;
@@ -41,28 +28,28 @@
   --color-pixel-white: #fffef5;
   --color-pixel-white-pure: #ffffff;
   
-  /* Semantic Colors */
+  
   --color-dream-bg: #1a0f2e;
   --color-dream-card: #2d1b4e;
   --color-dream-border: #5c3d87;
   --color-dream-accent: #f5e6a3;
   --color-dream-text: #fffef5;
   
-  /* Font Families */
+  
   --font-pixel: "Press Start 2P", monospace;
   --font-body: "Inter", sans-serif;
   
-  /* Pixel Border Sizes */
+  
   --border-pixel: 4px;
   --border-pixel-lg: 6px;
   
-  /* Animation */
+  
   --animate-twinkle: twinkle 2s ease-in-out infinite;
   --animate-float: float 6s ease-in-out infinite;
   --animate-pulse-soft: pulse-soft 3s ease-in-out infinite;
 }
 
-/* Keyframe Animations */
+
 @keyframes twinkle {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
@@ -83,7 +70,7 @@
   50% { opacity: 1; transform: scale(1.2); }
 }
 
-/* Base Styles */
+
 * {
   box-sizing: border-box;
 }
@@ -102,7 +89,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Pixel Font Utility */
+
 .font-pixel {
   font-family: var(--font-pixel);
   letter-spacing: 1px;
@@ -112,7 +99,7 @@ body {
   font-family: var(--font-body);
 }
 
-/* Pixel Border Utilities */
+
 .pixel-border {
   border: var(--border-pixel) solid var(--color-dream-border);
   box-shadow: 
@@ -137,7 +124,7 @@ body {
     4px 4px 0px 0px rgba(0,0,0,0.3);
 }
 
-/* Pixel Button Base */
+
 .pixel-button {
   font-family: var(--font-pixel);
   font-size: 0.75rem;
@@ -181,13 +168,13 @@ body {
   background-color: var(--color-dream-yellow-300);
 }
 
-/* Star Animation Classes */
+
 .star {
   animation: star-twinkle var(--twinkle-duration, 2s) ease-in-out infinite;
   animation-delay: var(--twinkle-delay, 0s);
 }
 
-/* Scrollbar Styling */
+
 ::-webkit-scrollbar {
   width: 12px;
   height: 12px;
@@ -206,7 +193,7 @@ body {
   background: var(--color-dream-purple-500);
 }
 
-/* Selection Styling */
+
 ::selection {
   background-color: var(--color-dream-accent);
   color: var(--color-dream-purple-900);

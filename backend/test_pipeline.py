@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """Quick test script to verify the analysis pipeline works end-to-end"""
 import sys
 import os
@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from analysis import analyze_session
 
-# Find a test EEG file
+
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 test_files = [
     os.path.join(base_dir, "cap_data", "n13.edf"),
@@ -20,7 +20,7 @@ for f in test_files:
         test_file = f
         break
 
-# Allow command line override
+
 if len(sys.argv) > 1:
     test_file = os.path.abspath(sys.argv[1])
 

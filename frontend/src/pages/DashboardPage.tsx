@@ -1,196 +1,107 @@
-/**
- * DashboardPage Component
- * Main dashboard with file upload portal
- * Features drag-and-drop zone styled as pixelated inventory slot
- */
-
 import React, { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/layout';
 import { PixelCard } from '../components/ui';
+import { upload } from '../services/api';
 
-interface DashboardPageProps {
-    onLogout?: () => void;
-}
-
-export const DashboardPage: React.FC<DashboardPageProps> = ({ onLogout }) => {
+export const DashboardPage = ({ onLogout }: { onLogout?: () => void }) => {
     const navigate = useNavigate();
-    const [isDragging, setIsDragging] = useState(false);
-    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-    const [uploadProgress, setUploadProgress] = useState(0);
+    const [dragging, setDragging] = useState(false);
+    const [file, setFile] = useState<File | null>(null);
+    const [progress, setProgress] = useState(0);
 
-    const handleDragOver = useCallback((e: React.DragEvent) => {
+    const onDrag = useCallback((e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragging(true);
+        setDragging(true);
     }, []);
 
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
+    const onLeave = useCallback((e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragging(false);
+        setDragging(false);
     }, []);
 
-    const handleUpload = async (file: File) => {
+    const processFile = async (f: File) => {
         try {
-            // Reset Progress
-            setUploadProgress(10);
+            setProgress(10);
+            const res = await upload(f);
+            setProgress(90);
 
-            // Import API call
-            const { uploadEEG } = await import('../services/api');
-            setUploadProgress(30);
-
-            // Perform Upload
-            console.log('🚀 Starting upload and analysis (this may take ~30s)...');
-            const response = await uploadEEG(file);
-            setUploadProgress(90);
-
-            if (response.success && response.sessionId) {
-                setUploadProgress(100);
-                setTimeout(() => {
-                    navigate(`/analysis/${response.sessionId}`);
-                }, 500);
+            if (res.success && res.sessionId) {
+                setProgress(100);
+                setTimeout(() => navigate(`/analysis/${res.sessionId}`), 500);
             } else {
-                alert(`Upload failed: ${response.error}`);
-                setUploadProgress(0);
-                setUploadedFile(null);
+                alert(`Error: ${res.error}`);
+                setProgress(0);
+                setFile(null);
             }
-        } catch (error) {
-            console.error(error);
-            alert('An unexpected error occurred during upload.');
-            setUploadProgress(0);
-            setUploadedFile(null);
+        } catch (err) {
+            console.error(err);
+            alert('Upload failed');
+            setProgress(0);
+            setFile(null);
         }
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            const file = files[0];
-            setUploadedFile(file);
-            handleUpload(file);
+    const onSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selected = e.target.files?.[0];
+        if (selected) {
+            setFile(selected);
+            processFile(selected);
         }
     };
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
+    const onDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();
-        setIsDragging(false);
-
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            const file = files[0];
-            if (file.name.toLowerCase().endsWith('.edf')) {
-                setUploadedFile(file);
-                handleUpload(file);
-            } else {
-                alert('Please upload an .EDF file');
-            }
+        setDragging(false);
+        const dropped = e.dataTransfer.files[0];
+        if (dropped?.name.toLowerCase().endsWith('.edf')) {
+            setFile(dropped);
+            processFile(dropped);
+        } else {
+            alert('EDF file required');
         }
     }, [navigate]);
 
     return (
-        <DashboardLayout title="Upload Portal" userName="Traveler" onLogout={onLogout}>
+        <DashboardLayout title="Portal" userName="User" onLogout={onLogout}>
             <div className="max-w-4xl mx-auto">
-                {/* Welcome Message */}
                 <div className="mb-8">
-                    <h1 className="font-pixel text-lg text-pixel-white mb-2">
-                        WELCOME, TRAVELER
-                    </h1>
-                    <p className="font-body text-dream-purple-300">
-                        Upload your EEG recording to begin the sleep analysis journey.
-                    </p>
+                    <h1 className="font-pixel text-lg text-pixel-white mb-2">WELCOME</h1>
+                    <p className="font-body text-dream-purple-300">Upload an EEG file to start.</p>
                 </div>
 
-                {/* Upload Portal */}
-                <PixelCard title="⬆ EEG DATA PORTAL" variant="highlight">
+                <PixelCard title="PORTAL" variant="highlight">
                     <div
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                        className={`
-              relative min-h-[300px] 
-              border-4 border-dashed
-              flex flex-col items-center justify-center
-              transition-all duration-200 cursor-pointer
-              ${isDragging
-                                ? 'border-dream-yellow-500 bg-dream-purple-700/50 scale-[1.02]'
-                                : 'border-dream-purple-500 bg-dream-indigo-800/50 hover:border-dream-purple-400'
-                            }
-            `}
+                        onDragOver={onDrag}
+                        onDragLeave={onLeave}
+                        onDrop={onDrop}
+                        className={`relative min-h-[300px] border-4 border-dashed flex flex-col items-center justify-center transition-all cursor-pointer ${dragging ? 'border-dream-yellow-500 bg-dream-purple-700/50' : 'border-dream-purple-500 bg-dream-indigo-800/50'
+                            }`}
                     >
-                        {/* Portal Animation */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className={`
-                w-32 h-32 rounded-full border-4 border-dream-purple-500
-                ${isDragging ? 'animate-ping opacity-50' : 'opacity-20'}
-              `} />
-                        </div>
-
-                        {!uploadedFile ? (
+                        {!file ? (
                             <>
-                                {/* Upload Icon - Pixel Style */}
-                                <div className="relative z-10 mb-6">
-                                    <div className="w-20 h-20 bg-dream-purple-700 border-4 border-dream-purple-500 flex items-center justify-center">
-                                        <span className="text-4xl">📁</span>
-                                    </div>
+                                <div className="w-20 h-20 bg-dream-purple-700 border-4 border-dream-purple-500 flex items-center justify-center mb-6">
+                                    <span className="text-4xl text-white">F</span>
                                 </div>
-
-                                <p className="font-pixel text-[10px] text-dream-yellow-500 text-center mb-2 relative z-10">
-                                    DROP .EDF FILE HERE
-                                </p>
-                                <p className="font-body text-sm text-dream-purple-400 text-center mb-6 relative z-10">
-                                    or click to select from your computer
-                                </p>
-
-                                <input
-                                    type="file"
-                                    accept=".edf,.EDF"
-                                    onChange={handleFileSelect}
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                />
-
-                                {/* File type hint */}
-                                <div className="flex gap-2 relative z-10">
-                                    <span className="px-3 py-1 bg-dream-purple-700 border-2 border-dream-purple-500 font-pixel text-[8px] text-dream-purple-300">
-                                        .EDF
-                                    </span>
-                                </div>
+                                <p className="font-pixel text-[10px] text-dream-yellow-500 mb-2">DROP .EDF HERE</p>
+                                <input type="file" accept=".edf" onChange={onSelect} className="absolute inset-0 opacity-0 cursor-pointer" />
                             </>
                         ) : (
-                            <>
-                                {/* Uploaded File Display */}
-                                <div className="relative z-10 text-center">
-                                    <div className="w-16 h-16 bg-dream-yellow-500/20 border-4 border-dream-yellow-500 flex items-center justify-center mx-auto mb-4">
-                                        <span className="text-3xl">✨</span>
-                                    </div>
-
-                                    <p className="font-pixel text-[10px] text-dream-yellow-500 mb-2">
-                                        FILE RECEIVED
-                                    </p>
-                                    <p className="font-body text-sm text-pixel-white mb-4">
-                                        {uploadedFile.name}
-                                    </p>
-
-                                    {/* Progress Bar */}
-                                    <div className="w-64 mx-auto mb-6">
-                                        <div className="h-4 bg-dream-indigo-800 border-4 border-dream-purple-600">
-                                            <div
-                                                className="h-full bg-dream-yellow-500 transition-all duration-200"
-                                                style={{ width: `${uploadProgress}%` }}
-                                            />
-                                        </div>
-                                        <p className="font-pixel text-[8px] text-dream-purple-400 mt-2">
-                                            {uploadProgress < 30 ? `UPLOADING... ${uploadProgress}%` :
-                                                uploadProgress < 100 ? `ANALYZING DREAMSCAPE... ${uploadProgress}%` :
-                                                    'READY FOR ANALYSIS'}
-                                        </p>
-                                    </div>
-
-                                    {uploadProgress >= 100 && (
-                                        <div className="text-center font-pixel text-[8px] text-dream-yellow-500 animate-pulse">
-                                            REDIRECTING TO DREAMSCAPE...
-                                        </div>
-                                    )}
+                            <div className="text-center">
+                                <div className="w-16 h-16 bg-dream-yellow-500/20 border-4 border-dream-yellow-500 flex items-center justify-center mx-auto mb-4">
+                                    <span className="text-3xl text-yellow-500">*</span>
                                 </div>
-                            </>
+                                <p className="font-pixel text-[10px] text-dream-yellow-500 mb-2">FILE SEEN</p>
+                                <p className="font-body text-sm text-pixel-white mb-4">{file.name}</p>
+                                <div className="w-64 mx-auto">
+                                    <div className="h-4 bg-dream-indigo-800 border-4 border-dream-purple-600">
+                                        <div className="h-full bg-dream-yellow-500" style={{ width: `${progress}%` }} />
+                                    </div>
+                                    <p className="font-pixel text-[8px] text-dream-purple-400 mt-2">
+                                        {progress < 100 ? `PROCESSING... ${progress}%` : 'DONE'}
+                                    </p>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </PixelCard>

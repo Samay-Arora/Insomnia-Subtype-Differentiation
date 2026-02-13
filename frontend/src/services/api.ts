@@ -1,113 +1,90 @@
-/**
- * API Service for Sleep Research Platform
- * Integrated with Supabase for Auth and Data
- */
+
 
 import { createClient } from '@supabase/supabase-js';
 import type {
     LoginCredentials,
     SignupCredentials,
-    AuthResponse,
-    UploadResponse,
     AnalysisData
 } from '../types';
 
-// Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const url = import.meta.env.VITE_SUPABASE_URL || '';
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+export const supabase = createClient(url, key);
 
-/**
- * Register a new user account
- */
-export async function signup(credentials: SignupCredentials): Promise<AuthResponse> {
+export async function signup(creds: SignupCredentials) {
     const { error } = await supabase.auth.signUp({
-        email: credentials.email,
-        password: credentials.password,
+        email: creds.email,
+        password: creds.password,
     });
 
-    if (error) {
-        return { success: false, error: error.message };
-    }
-
+    if (error) return { success: false, error: error.message };
     return { success: true };
 }
 
-/**
- * Authenticate user with email and password
- */
-export async function login(credentials: LoginCredentials): Promise<AuthResponse> {
+export async function login(creds: LoginCredentials) {
     const { error } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password,
+        email: creds.email,
+        password: creds.password,
     });
 
-    if (error) {
-        return { success: false, error: error.message };
-    }
-
+    if (error) return { success: false, error: error.message };
     return { success: true };
 }
 
-// FastAPI backend URL (no file storage for privacy)
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-/**
- * Upload and analyze an EEG/EDF file
- * File is processed in-memory and NOT stored (HIPAA-friendly)
- * @param file - The .EDF file to analyze
- */
-export async function uploadEEG(file: File): Promise<UploadResponse> {
+export async function upload(file: File) {
     try {
-        const formData = new FormData();
-        formData.append('file', file);
+        const fd = new FormData();
+        fd.append('file', file);
 
-        // Get current auth session to send token
         const { data: { session } } = await supabase.auth.getSession();
-
         const headers: HeadersInit = {};
         if (session?.access_token) {
             headers['Authorization'] = `Bearer ${session.access_token}`;
         }
 
-        const response = await fetch(`${API_BASE_URL}/analyze`, {
+        console.log(`uploading to ${BASE}/analyze...`);
+        const res = await fetch(`${BASE}/analyze`, {
             method: 'POST',
-            body: formData,
-            headers: headers
+            body: fd,
+            headers
         });
 
-        if (!response.ok) {
-            const error = await response.json();
-            return { success: false, error: error.detail || 'Analysis failed' };
+        if (!res.ok) {
+            const txt = await res.text();
+            console.error('server err:', res.status, txt);
+            try {
+                const err = JSON.parse(txt);
+                return { success: false, error: err.detail || `server error ${res.status}` };
+            } catch {
+                return { success: false, error: `server error ${res.status}` };
+            }
         }
 
-        const result = await response.json();
-        console.log('✅ Upload response received:', result);
+        const data = await res.json();
+        console.log('upload success:', data);
         return {
             success: true,
-            sessionId: result.sessionId,
+            sessionId: data.sessionId,
             filename: file.name,
         };
-    } catch (error) {
-        console.error('Upload/analysis error:', error);
-        return { success: false, error: 'Failed to connect to analysis server' };
+    } catch (e: any) {
+        console.error('upload catch:', e);
+        return { success: false, error: e.message || 'connection failed' };
     }
 }
 
-/**
- * Retrieve cached analysis results for a session
- * Results are temporarily cached in FastAPI (auto-expires)
- */
-export async function getAnalysis(sessionId: string): Promise<AnalysisData> {
-    console.log(`🔍 Fetching analysis for session: ${sessionId}`);
-    const response = await fetch(`${API_BASE_URL}/results/${sessionId}`);
+export async function getAnalysis(sid: string) {
+    console.log(`fetch analysis: ${sid}`);
+    const res = await fetch(`${BASE}/results/${sid}`);
 
-    if (!response.ok) {
-        console.error(`❌ Failed to fetch analysis: ${response.status} ${response.statusText}`);
-        throw new Error('Analysis not found or expired');
+    if (!res.ok) {
+        console.error(`fetch failed: ${res.status}`);
+        throw new Error('not found');
     }
 
-    const data = await response.json();
-    console.log('✅ Analysis data received:', data);
-    return data;
+    const data = await res.json();
+    console.log('data received');
+    return data as AnalysisData;
 }
