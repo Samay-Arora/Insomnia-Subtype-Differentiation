@@ -111,6 +111,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                             >
                                 {isLoading ? 'ENTERING...' : 'ENTER DREAMSCAPE'}
                             </PixelButton>
+                            
+                            <div className="mt-4">
+                                <PixelButton
+                                    type="button"
+                                    variant="ghost"
+                                    fullWidth
+                                    onClick={() => {
+                                        localStorage.setItem('offline_mode', 'true');
+                                        window.location.href = '/dashboard';
+                                    }}
+                                >
+                                    ENTER AS GUEST
+                                </PixelButton>
+                            </div>
                         </div>
                     </form>
 

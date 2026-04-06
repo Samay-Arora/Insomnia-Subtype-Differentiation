@@ -73,6 +73,16 @@ export const LandingPage: React.FC = () => {
                             Create Profile
                         </PixelButton>
                     </Link>
+                    <PixelButton 
+                        variant="ghost" 
+                        size="lg" 
+                        onClick={() => {
+                            localStorage.setItem('offline_mode', 'true');
+                            window.location.href = '/dashboard';
+                        }}
+                    >
+                        Enter as Guest
+                    </PixelButton>
                 </div>
 
                 {/* Decorative pixel line */}

@@ -34,22 +34,44 @@ const useAuth = () => {
 
   React.useEffect(() => {
     
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
+    supabase.auth.getSession().then((res) => {
+      const { data, error } = res;
+      if (error) {
+        console.warn("Session error, allowing offline:", error);
+        setIsLoggedIn(localStorage.getItem('offline_mode') === 'true');
+      } else {
+        const session = data?.session;
+        setIsLoggedIn(!!session || localStorage.getItem('offline_mode') === 'true');
+      }
+      setLoading(false);
+    }).catch(e => {
+      console.warn("Supabase unreachable, using offline mode", e);
+      setIsLoggedIn(localStorage.getItem('offline_mode') === 'true');
       setLoading(false);
     });
 
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    try {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          setIsLoggedIn(true);
+        }
+        setLoading(false);
+      });
+      return () => subscription.unsubscribe();
+    } catch (e) {
+      console.warn("Could not subscribe to auth", e);
+      return () => {};
+    }
   }, []);
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Logout error, might be offline:", e);
+    }
+    localStorage.removeItem('offline_mode');
+    setIsLoggedIn(false);
   };
 
   return { isLoggedIn, loading, logout };
