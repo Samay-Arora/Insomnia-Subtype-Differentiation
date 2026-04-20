@@ -7,8 +7,8 @@ import type {
     AnalysisData
 } from '../types';
 
-const url = import.meta.env.VITE_SUPABASE_URL || '';
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const url = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
 export const supabase = createClient(url, key);
 
 export async function signup(creds: SignupCredentials) {
@@ -89,15 +89,11 @@ export async function upload(file: File) {
         if (!res.ok) {
             const txt = await res.text();
             console.error('server err:', res.status, txt);
-            if (res.status >= 500 || res.status === 503) {
-                console.warn('Backend/Database offline, using mock upload');
-                return { success: true, sessionId: 'mock-session-' + Date.now(), filename: file.name };
-            }
             try {
                 const err = JSON.parse(txt);
                 return { success: false, error: err.detail || `server error ${res.status}` };
             } catch {
-                return { success: false, error: `server error ${res.status}` };
+                return { success: false, error: `server error ${res.status}: ${txt}` };
             }
         }
 
@@ -109,11 +105,10 @@ export async function upload(file: File) {
             filename: file.name,
         };
     } catch (e: any) {
-        console.warn('Backend unreachable, using mock upload:', e);
+        console.error('Backend unreachable:', e);
         return {
-            success: true,
-            sessionId: 'mock-session-' + Date.now(),
-            filename: file.name,
+            success: false,
+            error: 'Cannot reach analysis server. Please ensure the backend is running.',
         };
     }
 }
@@ -124,41 +119,21 @@ export async function getAnalysis(sid: string) {
         const res = await fetch(`${BASE}/results/${sid}`);
 
         if (!res.ok) {
-            console.error(`fetch failed: ${res.status}`);
-            if (res.status >= 500 || sid.startsWith('mock-')) {
-                throw new Error('fallback');
+            const txt = await res.text();
+            console.error(`fetch failed: ${res.status}`, txt);
+            try {
+                const err = JSON.parse(txt);
+                throw new Error(err.detail || `server error ${res.status}`);
+            } catch {
+                throw new Error(`server error ${res.status}`);
             }
-            throw new Error('not found');
         }
 
         const data = await res.json();
         console.log('data received');
         return data as AnalysisData;
     } catch (e: any) {
-        if (e.message !== 'not found') {
-            console.warn('Backend/Database offline or mock session, using fallback data for:', sid);
-            return {
-                sessionId: sid,
-                patientId: `P-${sid.substring(0, 8).replace('mock-', '')}`,
-                recordingDate: new Date().toISOString().split('T')[0],
-                sleepStages: [
-                    { time: 0, stage: 0, label: 'Wake' },
-                    { time: 30, stage: 1, label: 'N1' },
-                    { time: 60, stage: 2, label: 'N2' },
-                    { time: 120, stage: 3, label: 'N3' },
-                    { time: 180, stage: 4, label: 'REM' },
-                ],
-                spectralAnalysis: [
-                    { frequency: 1, power: 10, channel: 'EEG' },
-                    { frequency: 5, power: 5, channel: 'EEG' },
-                    { frequency: 10, power: 15, channel: 'EEG' },
-                    { frequency: 15, power: 2, channel: 'EEG' },
-                ],
-                clusterAssignment: { x: 0.5, y: -0.2, cluster: 1, patientId: `P-${sid.substring(0, 8)}` },
-                phenotype: { type: 'Subtype 2: High Arousal / Hyperactive', confidence: 0.85, characteristics: ['Elevated Beta Power', 'High Fragmentation', 'Offline Mode Fallback'] },
-                summary: { totalSleepTime: 360, sleepEfficiency: 85, wakeAfterSleepOnset: 20, remLatency: 90 }
-            } as AnalysisData;
-        }
+        console.error('Failed to fetch analysis results:', e);
         throw e;
     }
 }

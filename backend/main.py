@@ -12,8 +12,8 @@ from analysis import analyze_session
 
 app = FastAPI()
 
-URL = os.environ.get("VITE_SUPABASE_URL")
-KEY = os.environ.get("VITE_SUPABASE_ANON_KEY")
+URL = os.environ.get("SUPABASE_URL")
+KEY = os.environ.get("SUPABASE_ANON_KEY")
 supabase: Optional[Client] = None
 
 if URL and KEY:

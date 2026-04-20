@@ -31,6 +31,12 @@ BANDS = {
     'Beta': (12, 30), 'Gamma': (30, 45)
 }
 
+FEATURE_ORDER = [
+    'Rel_Delta', 'Rel_Theta', 'Rel_Alpha', 'Rel_Beta', 'Rel_Gamma',
+    'Perm_Entropy', 'Fractal_Dim', 'Hjorth_Complexity'
+]
+BAND_COLS = ['Rel_Delta', 'Rel_Theta', 'Rel_Alpha', 'Rel_Beta', 'Rel_Gamma']
+
 try:
     model = joblib.load(MOD_PATH)
     scaler = joblib.load(SCL_PATH)
@@ -99,18 +105,22 @@ def analyze_session(path: str) -> Dict[str, Any]:
     
     if model and scaler:
         try:
-            X = pd.DataFrame([f]).values
-            X_scaled = scaler.transform(X)
+            row = pd.DataFrame([f])[FEATURE_ORDER]
+            # Normalize band powers to sum to 1 (matches training preprocessing)
+            band_sum = row[BAND_COLS].sum(axis=1).values[0]
+            if band_sum > 0:
+                row[BAND_COLS] = row[BAND_COLS].div(band_sum, axis=0)
+            X_scaled = scaler.transform(row)
             c = int(model.predict(X_scaled)[0])
+            proba = model.transform(X_scaled)[0]  # distances to each centroid
+            min_dist = proba.min()
+            conf = float(np.clip(1.0 - (min_dist / (proba.sum() + 1e-9)), 0.5, 0.99))
+            # 2-cluster model — validated by silhouette analysis (k=2 optimal)
             subs = {
-                0: "Subtype 1: Low Arousal / Deep Sleep Deficit",
-                1: "Subtype 2: High Arousal / Hyperactive",
-                2: "Subtype 3: Fragmented / Chaotic",
-                3: "Subtype 4: Periodic Leg Movement / Restless"
+                0: "Subtype A: Rigid Brain / Deep Sleep Deficit",
+                1: "Subtype B: Hyperarousal / Cortical Overactivation",
             }
-            
-            p.update({"cluster": c, "subtype": subs.get(c, f"Subtype {c}"), "confidence": 0.85})
-            
+            p.update({"cluster": c, "subtype": subs.get(c, f"Subtype {c}"), "confidence": round(conf, 2)})
         except Exception as e:
             print(f"Pred error: {e}")
 

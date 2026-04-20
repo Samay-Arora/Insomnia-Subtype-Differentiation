@@ -67,7 +67,17 @@ export const DashboardPage = ({ onLogout }: { onLogout?: () => void }) => {
             <div className="max-w-4xl mx-auto">
                 <div className="mb-8">
                     <h1 className="font-pixel text-lg text-pixel-white mb-2">WELCOME</h1>
-                    <p className="font-body text-dream-purple-300">Upload an EEG file to start.</p>
+                    <p className="font-body text-dream-purple-300 mb-4">Upload an EEG file to start.</p>
+                    
+                    <div className="bg-dream-indigo-800/50 border border-dream-purple-500 p-4 mb-4">
+                        <p className="font-body text-sm text-dream-purple-200">
+                            <strong>Disclaimer:</strong> This is a research demonstration tool built on a 53-patient dataset. Classifications should not be interpreted as clinical diagnoses. A sample EDF file is provided for demonstration purposes. Results on other EDF files may vary. This tool is intended to illustrate the research methodology only.
+                        </p>
+                    </div>
+
+                    <p className="font-body text-sm text-dream-purple-300">
+                        Don't have a file? <a href="/test_file.edf" download className="text-dream-yellow-500 hover:text-dream-yellow-400 underline">Download a demonstration file</a>
+                    </p>
                 </div>
 
                 <PixelCard title="PORTAL" variant="highlight">
