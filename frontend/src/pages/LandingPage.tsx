@@ -13,7 +13,7 @@ export const LandingPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-gradient-to-b from-dream-indigo-900 via-dream-purple-900 to-dream-purple-800 relative overflow-hidden">
             {/* Starry Background */}
-            <StarryBackground starCount={80} />
+            <StarryBackground starCount={100} />
 
             {/* Floating Clouds */}
             <PixelCloud
@@ -26,38 +26,37 @@ export const LandingPage: React.FC = () => {
                 className="absolute top-40 right-20 animate-[float_10s_ease-in-out_infinite]"
                 opacity={0.08}
             />
-            <PixelCloud
-                variant="sm"
-                className="absolute bottom-40 left-1/4 animate-[float_12s_ease-in-out_infinite]"
-                opacity={0.12}
-            />
 
             {/* Main Content */}
             <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4">
                 {/* Moon */}
-                <div className="mb-8">
+                <div className="mb-6">
                     <PixelMoon size="xl" animate />
                 </div>
 
+                {/* Pixel Art Sword / Knight Element */}
+                <div className="mb-4 text-dream-yellow-500 font-pixel text-xs tracking-widest leading-none text-center">
+                    <pre className="inline-block text-left">
+{`      /| ________________
+O|===|* >________________>
+      \\|`}
+                    </pre>
+                </div>
+
                 {/* Title */}
-                <h1 className="font-pixel text-2xl md:text-3xl lg:text-4xl text-pixel-white text-center leading-relaxed mb-4 drop-shadow-lg">
-                    ENTER THE
-                    <br />
-                    <span className="text-dream-yellow-500">DREAMSCAPE</span>
+                <h1 className="font-pixel text-3xl md:text-4xl lg:text-5xl text-pixel-white text-center leading-relaxed mb-4 drop-shadow-lg">
+                    NIGHT<span className="text-dream-yellow-500">KNIGHT</span>
                 </h1>
 
                 {/* Subtitle */}
-                <p className="font-body text-lg md:text-xl text-dream-purple-300 text-center max-w-2xl mb-8 leading-relaxed">
-                    Welcome to the Sleep Research Platform.
-                    <br className="hidden md:block" />
-                    Discover the hidden patterns in your sleep through advanced insomnia phenotyping.
+                <p className="font-pixel text-[10px] md:text-xs text-dream-yellow-300 text-center max-w-2xl mb-8 leading-relaxed uppercase tracking-widest">
+                    Your Quest Through The Dreamscape Begins
                 </p>
 
                 {/* Description */}
-                <div className="max-w-xl text-center mb-10">
-                    <p className="font-body text-sm text-dream-purple-400 leading-relaxed">
-                        Upload your EEG data and let our analysis algorithms identify your unique sleep signature.
-                        Uncover insights that help researchers understand the complexity of insomnia subtypes.
+                <div className="max-w-xl text-center mb-10 pixel-border bg-dream-indigo-900/80 p-6">
+                    <p className="font-body text-sm text-dream-purple-200 leading-relaxed">
+                        The realm of sleep is plagued by mysterious disturbances. Equip your EEG data and embark on a journey. Our clinical algorithms will identify your unique insomnia subtype, helping researchers defeat the sleep demons.
                     </p>
                 </div>
 
@@ -65,12 +64,12 @@ export const LandingPage: React.FC = () => {
                 <div className="flex flex-col sm:flex-row gap-4">
                     <Link to="/login">
                         <PixelButton variant="primary" size="lg">
-                            Begin Journey
+                            Begin Quest
                         </PixelButton>
                     </Link>
                     <Link to="/signup">
                         <PixelButton variant="default" size="lg">
-                            Create Profile
+                            Join The Guild
                         </PixelButton>
                     </Link>
                     <PixelButton 
@@ -81,7 +80,7 @@ export const LandingPage: React.FC = () => {
                             window.location.href = '/dashboard';
                         }}
                     >
-                        Enter as Guest
+                        Enter as Lone Wanderer
                     </PixelButton>
                 </div>
 

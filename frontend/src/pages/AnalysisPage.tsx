@@ -87,7 +87,7 @@ export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
 
     if (loading || !data) {
         return (
-            <DashboardLayout title="Analysis" userName="User" onLogout={onLogout}>
+            <DashboardLayout title="The Alchemist's Tower" userName="Wanderer" onLogout={onLogout}>
                 <Loader />
             </DashboardLayout>
         );
@@ -144,7 +144,7 @@ export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
     const typeLabel = phenotype.type ? phenotype.type.split(':')[0] : 'Unknown';
 
     return (
-        <DashboardLayout title="Analysis" userName="User" onLogout={onLogout}>
+        <DashboardLayout title="Quest Results" userName="Wanderer" onLogout={onLogout}>
             <div className="space-y-6">
                 {/* Header Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -174,7 +174,7 @@ export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
                     </PixelCard>
                     <PixelCard variant="highlight">
                         <div className="text-center">
-                            <p className="font-pixel text-[8px] text-dream-purple-400 mb-1">PHENOTYPE</p>
+                            <p className="font-pixel text-[8px] text-dream-purple-400 mb-1">YOUR LINEAGE</p>
                             <p className="font-pixel text-lg text-dream-yellow-500">
                                 {typeLabel}
                             </p>
@@ -183,7 +183,7 @@ export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
                 </div>
 
                 {/* Hypnogram - Sleep Stage Chart */}
-                <PixelCard title="HYPNOGRAM">
+                <PixelCard title="THE HYPNOGRAM SCROLL">
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={stages}>
@@ -221,7 +221,7 @@ export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Spectral Power */}
-                    <PixelCard title="SPECTRAL POWER">
+                    <PixelCard title="MAGICAL RESONANCE (SPECTRAL)">
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={spectral}>
@@ -241,7 +241,7 @@ export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
                     </PixelCard>
 
                     {/* Sleep Stage Distribution */}
-                    <PixelCard title="STAGE DISTRIBUTION">
+                    <PixelCard title="REALM DISTRIBUTION">
                         <div className="h-64">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={metrics} layout="vertical">
@@ -258,7 +258,7 @@ export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
                 </div>
 
                 {/* Cluster Visualization */}
-                <PixelCard title="CLUSTERS">
+                <PixelCard title="THE GUILD MAP">
                     <div className="h-96">
                         <ResponsiveContainer width="100%" height="100%">
                             <ScatterChart margin={{ top: 20, right: 30, bottom: 40, left: 20 }}>
@@ -284,7 +284,7 @@ export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
 
                                 {/* Background Clusters */}
                                 <Scatter
-                                    name="Known Subtypes"
+                                    name="Known Factions"
                                     data={points.filter(d => !d.isPatient)}
                                     fill="#7a5299"
                                     shape="circle"
@@ -307,18 +307,18 @@ export const AnalysisPage = ({ onLogout }: { onLogout?: () => void }) => {
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-dream-purple-700 border-4 border-dream-yellow-500 animate-pulse">
                             <div className="w-3 h-3 bg-dream-yellow-500" />
                             <span className="font-pixel text-[8px] text-dream-yellow-500">
-                                YOUR POSITION: {phenotype.type}
+                                WANDERER LOCATION: {phenotype.type}
                             </span>
                         </div>
                     </div>
                 </PixelCard>
 
                 {/* Analysis Summary */}
-                <PixelCard title="SUMMARY" variant="highlight">
+                <PixelCard title="THE ALCHEMIST'S LOG" variant="highlight">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <h4 className="font-pixel text-[10px] text-dream-yellow-500 mb-3">
-                                FINDINGS
+                                QUEST DISCOVERIES
                             </h4>
                             <ul className="space-y-2">
                                 <li className="flex items-start gap-2">
