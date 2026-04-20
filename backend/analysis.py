@@ -77,6 +77,10 @@ def get_chaos(data):
     return c
 
 def process_raw(raw: mne.io.Raw) -> Dict[str, float]:
+    # MEMORY OPTIMIZATION: Keep only the first channel, then load to memory
+    raw.pick(picks=[raw.ch_names[0]])
+    raw.load_data()
+
     if raw.info['sfreq'] != SFREQ:
         raw.resample(SFREQ)
     
@@ -95,7 +99,8 @@ def process_raw(raw: mne.io.Raw) -> Dict[str, float]:
     return pd.DataFrame(feats).mean().to_dict()
 
 def analyze_session(path: str) -> Dict[str, Any]:
-    raw = mne.io.read_raw_edf(path, preload=True, verbose=False)
+    # MEMORY OPTIMIZATION: preload=False prevents loading the entire 50MB+ file at once
+    raw = mne.io.read_raw_edf(path, preload=False, verbose=False)
     f = process_raw(raw)
     p = {
         "subtype": "Unknown",
